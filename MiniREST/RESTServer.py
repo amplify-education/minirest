@@ -45,7 +45,10 @@ class RESTServer(object):
         self.SSLKey = SSLKey
         self.SSLCert = SSLCert
         self.server = None
-        self.token = token
+        if token == None:
+            self.token = ""
+        else:
+            self.token = token
 
     def start(self,block=True):
         """Starts the server and binds to the port.

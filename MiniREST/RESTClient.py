@@ -28,7 +28,10 @@ class RESTClient(object):
         else:
             self.useSSL = False
         self.url = "http://%s:%i" % (self.server, self.port)
-        self.token = token
+        if token == None:
+            self.token = ""
+        else:
+            self.token = token
    
     def registerRESTServer(self, restserver):
         """Register a RESTSerer for event registration.
