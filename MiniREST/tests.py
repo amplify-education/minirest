@@ -38,3 +38,13 @@ def test_ssl_ping():
     badServer.start(block=False)
     assert client.ping() == ''
     badServer.stop()
+
+def test_ssl_bad():
+    server = RESTServer(SSLKey="server.key", SSLCert="server.crt", portRange=[8000,9000])
+    server.start(block=False)
+    client = RESTClient()
+    assert client.ping() == ''
+    assert client.ping() == ''
+    server.stop()
+
+

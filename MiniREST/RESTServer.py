@@ -1,19 +1,33 @@
 # Server
-from gevent.pywsgi import WSGIServer
+from gevent.pywsgi import WSGIServer, WSGIHandler
 # Post Parsing
 from urlparse import parse_qs
 # Response packaging
 import simplejson
 import random
+import warnings
+from ssl import SSLError
 
 responseTypes = { 'plaintext': [('content-type','text/plain')] }
 responseCodes = { 200: '200 OK', 400: '400 Bad Request', 403: '403 Forbidden', 404: '404 NOT FOUND'}
 
+#A hack to ignore SSL errors in a somewhat sane way
+class WS(WSGIServer):
+    """ A wrapper on WSGIServer. Allows handling of ssl errors """
+
+    def wrap_socket_and_handle(self, client_socket, address):
+        try:
+            WSGIServer.wrap_socket_and_handle(self, client_socket, address)
+        except SSLError:
+            warnings.warn("Got ssl error on socket from %s:%s" % address)
+
 class RESTServer(object):
     """RESTServer - creates a new RESTServer instance.
     Extend this class and register new functions with 'registerFunction'
-    
+
     """
+
+    max_connection_attempts = 100
 
     def __init__(self,bind='0.0.0.0',port=8000, portRange=None, SSLKey=None, SSLCert=None, token=None, default_echoes=False):
         """Create a RESTServer. Call 'start' to start the server.
@@ -59,13 +73,14 @@ class RESTServer(object):
         """
         if self.server != None:
             return True
-        if self.portRange:
-            self.port = self.portRange[0]
+        if self.portRange is None:
+            self.portRange = [self.port, self.port+1]
         count = 0
-        while count < 100:
+        error = None
+        while count < self.max_connection_attempts:
             try:
                 if self.SSLKey and self.SSLCert:
-                    self.server = WSGIServer((self.bind, self.port), self._respond, keyfile=self.SSLKey, certfile=self.SSLCert)
+                    self.server = WS((self.bind, self.port), self._respond, keyfile=self.SSLKey, certfile=self.SSLCert)
                 else:
                     self.server = WSGIServer((self.bind, self.port), self._respond)
                 if not block:
@@ -74,15 +89,16 @@ class RESTServer(object):
                 else:
                     self.server.serve_forever()
                 break
-            except:
+            except Exception:
+                if count >= self.max_connection_attempts-1:
+                    raise
                 self.port = random.randrange(self.portRange[0], self.portRange[1])
             count += 1
-        if count >= 100:
-            raise FatalRuntimeError("Failed final server socket open connection attempt.")
+        if count >= self.max_connection_attempts:
             return False
         else:
             return True
-        
+
     def started(self):
         """Returns True/False for wether server is started
 
@@ -179,7 +195,7 @@ class RESTServer(object):
             return f(env, start_response, post)
         except KeyError:
             return self._respondMalformed(start_response)
-         
+
 
     def _checkToken(self, token):
         if token != self.token:
@@ -209,7 +225,7 @@ class RESTServer(object):
         message = post['message']
         start_response(responseCodes[200], responseTypes['plaintext'])
         return message
-    
+
     # tokenEcho - only echo back if user provides appropritate token
     def _tokenEcho(self, env, start_response, post):
         self._checkToken(post['token'])
