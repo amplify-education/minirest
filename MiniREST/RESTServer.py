@@ -19,8 +19,8 @@ class WS(WSGIServer):
     def wrap_socket_and_handle(self, client_socket, address):
         try:
             WSGIServer.wrap_socket_and_handle(self, client_socket, address)
-        except SSLError:
-            warnings.warn("Got ssl error on socket from %s:%s" % address)
+        except SSLError as e:
+            warnings.warn("Got ssl error ({0}) from {1}:{2}".format(e, address[0], address[1]))
 
 class RESTServer(object):
     """RESTServer - creates a new RESTServer instance.

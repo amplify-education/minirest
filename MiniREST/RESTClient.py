@@ -1,3 +1,4 @@
+# vim: ts=4 et filetype=python
 from gevent import monkey
 monkey.patch_all(socket=True, dns=True, time=True, select=True, thread=True, os=True, ssl=True, httplib=False, aggressive=True)
 import simplejson
@@ -11,11 +12,11 @@ class RESTClient(object):
 
     def __init__(self, server='localhost', port=8000, CACert=None, token=None):
         """Create a RESTClient to connect to a server.
-        
+
         Keyword arguments:
         server -- domain to connect to (default 'localhost')
         port -- the port to connect to (default 8000)
-        
+
 
         """
         self.server = server
@@ -32,13 +33,13 @@ class RESTClient(object):
             self.token = ""
         else:
             self.token = token
-   
+
     def registerRESTServer(self, restserver):
         """Register a RESTSerer for event registration.
-        
+
         Keyword arguments:
         restserver -- the server to register
-        
+
         """
         self.restserver = restserver
 
@@ -69,13 +70,11 @@ class RESTClient(object):
             else:
                 req = ("http://%s:%i/%s" % (address, port, link))
         # Now get it
-        try:
-            if useSSL:
-                resp = requests.post(req, data=data, verify=self.CACert).text
-            else:
-                resp = requests.post(req, data=data).text
-        except:
-            resp = ''
+        resp = ''
+        if useSSL:
+            resp = requests.post(req, data=data, verify=self.CACert).text
+        else:
+            resp = requests.post(req, data=data).text
         return resp
 
     def ping(self, *args):
