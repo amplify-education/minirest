@@ -1,3 +1,4 @@
+# vim: ts=4 et filetype=python
 # Server
 from gevent.pywsgi import WSGIServer, WSGIHandler
 # Post Parsing
@@ -75,6 +76,8 @@ class RESTServer(object):
             return True
         if self.portRange is None:
             self.portRange = [self.port, self.port+1]
+        else:
+            self.port = self.portRange[0]
         count = 0
         error = None
         while count < self.max_connection_attempts:
