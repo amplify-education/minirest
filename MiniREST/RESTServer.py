@@ -6,7 +6,7 @@ from urlparse import parse_qs
 # Response packaging
 import simplejson
 import random
-import warnings
+import logging
 from ssl import SSLError
 
 responseTypes = { 'plaintext': [('content-type','text/plain')] }
@@ -20,7 +20,7 @@ class WS(WSGIServer):
         try:
             WSGIServer.wrap_socket_and_handle(self, client_socket, address)
         except SSLError as e:
-            warnings.warn("Got ssl error ({0}) from {1}:{2}".format(e, address[0], address[1]))
+            logging.warning("Got ssl error ({0}) from {1}:{2}".format(e, address[0], address[1]))
 
 class RESTServer(object):
     """RESTServer - creates a new RESTServer instance.
