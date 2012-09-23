@@ -23,6 +23,8 @@
 
 from RESTServer import RESTServer
 from RESTClient import RESTClient
+from requests.exceptions import SSLError
+from requests.exceptions import ConnectionError
 
 def test_ping():
     server = RESTServer()
@@ -59,15 +61,22 @@ def test_ssl_ping():
     # Test that bad crt rejected
     badServer = RESTServer(SSLKey='server2.key', SSLCert='server2.crt')
     badServer.start(block=False)
-    assert client.ping() == ''
+    error = False
+    try:
+        client.ping() == ''
+    except SSLError:
+        error = True
+    assert error == True
     badServer.stop()
 
 def test_ssl_bad():
     server = RESTServer(SSLKey="server.key", SSLCert="server.crt", portRange=[8000,9000])
     server.start(block=False)
     client = RESTClient()
-    assert client.ping() == ''
-    assert client.ping() == ''
+    error = False
+    try:
+        assert client.ping() == ''
+    except ConnectionError:
+        error = True
+    assert error == True
     server.stop()
-
-
