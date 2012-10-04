@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# vim: ts=4 et filetype=python
+
 # This file is part of MiniREST
 #
 #Copyright (c) 2012 Wireless Generation, Inc.

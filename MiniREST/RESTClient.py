@@ -35,7 +35,7 @@ class RESTClient(object):
 
     """
 
-    def __init__(self, server='localhost', port=8000, CACert=None, token=None):
+    def __init__(self, server='localhost', port=8000, ssl=False, CACert=False, token=None):
         """Create a RESTClient to connect to a server.
 
         Keyword arguments:
@@ -48,8 +48,8 @@ class RESTClient(object):
         self.port = port
         self.restserver = None
         self.CACert = CACert
-        if self.CACert:
-            self.useSSL = True
+        self.useSSL = ssl
+        if self.useSSL:
             self.SSLurl = "https://%s:%i" % (self.server, self.port)
         else:
             self.useSSL = False
