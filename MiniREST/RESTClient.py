@@ -28,6 +28,8 @@ from gevent import monkey
 monkey.patch_all(socket=True, dns=True, time=True, select=True, thread=True, os=True, ssl=True, httplib=False, aggressive=True)
 import simplejson
 import requests
+from requests import ConnectionError
+import logging
 
 class RESTClient(object):
     """Connects to a server using a restful interface via http
@@ -74,7 +76,7 @@ class RESTClient(object):
 
         Keyword arguments:
         link -- the string to append to the base domain
-        data -- dictionary of POST data to send with request
+        data -- dictionary of POST data to send with request or None on error
 
         """
         # By default try using SSL
@@ -96,11 +98,15 @@ class RESTClient(object):
                 req = ("http://%s:%i/%s" % (address, port, link))
         # Now get it
         resp = ''
-        if useSSL:
-            resp = requests.post(req, data=data, verify=self.CACert).text
-        else:
-            resp = requests.post(req, data=data).text
-        return resp
+        try:
+            if useSSL:
+                resp = requests.post(req, data=data, verify=self.CACert).text
+            else:
+                resp = requests.post(req, data=data).text
+            return resp
+        except ConnectionError:
+            logging.warning("Failed to send request %s to %s." %(data, req))
+            return None
 
     def ping(self, *args):
         """Test function which sends a ping to the server.
